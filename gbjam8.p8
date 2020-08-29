@@ -1,7 +1,62 @@
 pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
+-- start
+game = {}
 
+function _init()
+	show_menu()
+end
+
+function _update()
+	game.update()
+end
+
+function _draw()
+	game.draw()
+end
+-->8
+-- main menu
+function show_menu()
+	game.update = update_menu
+	game.draw = draw_menu
+end
+
+function update_menu()
+	if btn(❎) then
+		show_level1()
+	end
+end
+
+function draw_menu()
+	cls()
+	print_centered("slime adventure", 0, 0)
+	print_centered("press x to start", 0, 10)
+end
+-->8
+-- levels
+function show_level1()
+	game.update = update_level
+	game.draw = draw_level
+end
+
+function update_level()
+
+end
+
+function draw_level()
+	cls()
+		print_centered("level 1", 0, 0)
+end
+-->8
+-- credits
+-->8
+-- tools
+function print_centered(str, offset_x, offset_y)
+  print(str, 
+  64 - (#str * 2) + offset_x, 
+  60 + offset_y) 
+end
 __gfx__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
