@@ -24,7 +24,7 @@ end
 
 function update_menu()
 	if btn(❎) then
-		show_level1()
+		show_level()
 	end
 end
 
@@ -35,27 +35,66 @@ function draw_menu()
 end
 -->8
 -- levels
-function show_level1()
+slimes={}
+
+function show_level()
 	game.update = update_level
 	game.draw = draw_level
+	
+	add(slimes,new_player(0,0))
 end
 
 function update_level()
-
+ for slime in all(slimes) do
+		walk(slime)
+		anim(slime)
+	end
 end
 
 function draw_level()
 	cls()
-		print_centered("level 1", 0, 0)
+	map()
+	for slime in all(slimes) do
+		spr(slime.spt,slime.x,slime.y)
+	end
+end
+
+function anim_level(level)
+ cls()
+	print_centered("level "+level, 0, 0)
 end
 -->8
 -- credits
+
 -->8
 -- tools
 function print_centered(str, offset_x, offset_y)
   print(str, 
   64 - (#str * 2) + offset_x, 
   60 + offset_y) 
+end
+-->8
+-- player
+function new_player(x,y)
+	local player={}
+	player.x = x
+	player.y = y
+	player.spt=1
+	return player
+end
+
+function walk(player)
+	if btn(➡️) then player.x+=1 
+	elseif btn(⬅️) then player.x-=1 
+	elseif btn(⬇️) then player.y+=1
+	elseif btn(⬆️) then player.y-=1 end
+end
+
+function anim(player)
+	player.spt+=0.25
+	if player.spt > 4 then
+	 player.spt=1
+	end
 end
 __gfx__
 00000000000000000000000000000000000990000000000000000000000000000009900000000000000000000000000000000000000000000000000000000000
