@@ -15,6 +15,15 @@ end
 function _draw()
 	game.draw()
 end
+ --[[ sfx
+ 00 espinho
+ 01 andar (rastejar)
+ 02 pegar
+ 03 abrir portas
+ 04 botao
+]]
+
+
 -->8
 -- main menu
 function show_menu()
