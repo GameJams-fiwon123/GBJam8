@@ -94,7 +94,7 @@ function update_walk()
 			can_walk = false
 		end
 		
-		anim(slime)		
+		--anim(slime)		
 	end
 	
 	if can_walk then
