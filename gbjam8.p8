@@ -39,7 +39,10 @@ end
 
 function draw_menu()
 	cls()
-	print_centered("slime adventure", 0, 0)
+	pal(1, true)
+	spr(64,32,20,8,2)
+	spr(96,24,40,10,2)
+	pal()
 	print_centered("press x to start", 0, 10)
 end
 -->8
