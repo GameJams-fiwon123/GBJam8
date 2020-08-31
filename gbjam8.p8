@@ -4,6 +4,17 @@ __lua__
 -- start
 game = {}
 
+input={
+	x=0,
+	y=0
+}
+
+camera_pos={
+	x=0,
+	y=0
+}
+
+
 flags = {
 	collision=0,
 	portal=7
@@ -30,6 +41,7 @@ function _draw()
 end
 -->8
 -- main menu
+
 function show_menu()
 	game.update = update_menu
 	game.draw = draw_menu
@@ -37,7 +49,7 @@ end
 
 function update_menu()
 	if btn(❎) then
-		show_level()
+  start_game()
 	end
 end
 
@@ -51,18 +63,44 @@ function draw_menu()
 end
 -->8
 -- levels
-slimes={}
 
-input={
-	x=0,
-	y=0
-}
+is_walking = false
 
-function show_level()
-	game.update = update_level
-	game.draw = draw_level
+function start_game()
+	game.time = 0
+	game.level = 1
 	
-	add(slimes,new_player(5*8,6*8))
+	camera_pos.x=0
+	camera_pos.y=0
+	game.scenes={
+		{show=show_level1},
+		{show=show_level2},
+		{show=show_level3},
+		{show=show_level4},
+		{show=show_level5},
+		{show=show_level6},
+		{show=show_level7},
+		{show=show_level8},
+		{show=show_level9},
+		{show=show_level10}
+	}
+ game.update = update_anim_level
+	game.draw = draw_anim_level
+end
+
+function show_level1()
+	add(slimes,new_slime(5*8,6*8))
+	get_portals()
+end
+
+function show_level2()
+	add(slimes,new_slime(camera_pos.x+5*8,camera_pos.y+6*8))
+ get_portals()
+end
+
+function is_tile(x,y,type_tile)
+	local tile=mget(x/8, y/8)
+	return fget(tile, type_tile)
 end
 
 function input_walk()
@@ -75,73 +113,77 @@ function input_walk()
 	elseif btn(⬆️) then input.y-=1 end
 end
 
-function update_level()
-	input_walk()
-	
-	for slime in all(slimes) do
-				slime.spt=1
-	end
-	
-	if input.x != 0 or input.y != 0 then
-			
-			local flag_walk
-			for slime in all(slimes) do
-				if not flag_walk then
-					flag_walk = walk(slime)
-				else
-				 walk(slime)
+function verify_input()
+		if input.x != 0 or input.y != 0 then
+				local flag_walk=false
+				for slime in all(slimes) do
+					if not flag_walk then
+						flag_walk = set_input_walk(slime)
+					else
+					 set_input_walk(slime)
+					end
 				end
-			end
-			
-			if flag_walk then
-				sfx(sfxs.walk)
-			end
-			
-			game.update = update_walk
-	end
-	
+				
+				if flag_walk then
+					sfx(sfxs.walk)
+					is_walking=true
+				end
+		end
 end
 
-function update_walk()
-	local can_walk = true
+function complete_level()
+
+	local portals_count = #portals
 
 	for slime in all(slimes) do
-		if slime.x>slime.next_x then 
-			slime.x-=1 
-			can_walk = false
-		elseif slime.x<slime.next_x then 
-			slime.x+=1
-			can_walk = false
-		elseif slime.y>slime.next_y then 
-			slime.y-=1 
-			can_walk = false
-		elseif slime.y<slime.next_y then 
-			slime.y+=1 
-			can_walk = false
+		if is_tile(slime.x,slime.y,flags.portal) then
+			portals_count-=1
 		end
+	end
+	
+	if portals_count==0 then
+		return true
+	end
+	
+	return false
+end
+
+function update_level()
+	anim_portals()
+
+ if not is_walking then
+	 input_walk()
+	 anim_idle()
 		
-		anim(slime)		
-	end
-	
-	for slime in all(slimes) do
-		if can_walk and is_finish(slime.x,slime.y) then
-			next_level()
-		end
-	end
+		verify_input()
+ else
+ 		is_walking=process_walk()
+ 		
+ 		if not is_walking then
+ 		 if complete_level() then
+ 		   next_level()
+ 		 end
+ 		end
+ end
 
-	if can_walk then
-	 game.update=update_level
-	end
-	
-end
-
-function is_finish(x,y)
-		local tile=mget(x/8, y/8)
-	return fget(tile, flags.portal)
 end
 
 function next_level()
- anim_level(2)
+ game.time=0
+ game.level+=1
+ 
+ portals={}
+	slimes={}
+ 
+ camera_pos.x+=128
+ if (camera_pos.x/128 == 5) then
+  camera_pos.x=0
+  camera_pos.y+=128
+ end
+ camera(camera_pos.x, camera_pos.y)
+ 
+ game.update = update_anim_level
+	game.draw = draw_anim_level
 end
 
 function draw_level()
@@ -152,10 +194,18 @@ function draw_level()
 	end
 end
 
-function anim_level(level)
+function update_anim_level()
+ game.time+=1
+ if game.time == 30 then
+  game.scenes[game.level].show()
+  game.update = update_level
+	 game.draw = draw_level
+ end
+end
+
+function draw_anim_level()
  cls()
- camera(128,0)
-	print_centered("level "..level, 0, 0)
+	print_centered("level "..game.level, camera_pos.x, camera_pos.y)
 end
 -->8
 -- credits
@@ -167,26 +217,27 @@ function print_centered(str, offset_x, offset_y)
   64 - (#str * 2) + offset_x, 
   60 + offset_y) 
 end
-
 -->8
--- player
-function new_player(x,y)
-	local player={}
-	player.x = x
-	player.y = y
-	player.next_x=0
-	player.next_y=0
-	player.spt=1
-	return player
+-- slime
+slimes={}
+
+function new_slime(x,y)
+	local slime={}
+	slime.x = x
+	slime.y = y
+	slime.next_x=0
+	slime.next_y=0
+	slime.spt=1
+	return slime
 end
 
-function walk(player)
+function set_input_walk(slime)
 
-	local next_x = player.x+input.x*8
-	local next_y = player.y+input.y*8
-	if not is_block(next_x, next_y) then
-		player.next_x = next_x
-		player.next_y = next_y
+	local next_x = slime.x+input.x*8
+	local next_y = slime.y+input.y*8
+	if not is_tile(next_x, next_y, flags.collision) then
+		slime.next_x = next_x
+		slime.next_y = next_y
 		
 		return true
 	end
@@ -194,15 +245,77 @@ function walk(player)
 	return false
 end
 
-function is_block(x, y)
-	local tile=mget(x/8, y/8)
-	return fget(tile, flags.collision)
+function process_walk()
+
+	local is_finish = true
+
+	for slime in all(slimes) do
+		if slime.x>slime.next_x then 
+			slime.x-=1 
+			is_finish = false
+		elseif slime.x<slime.next_x then 
+			slime.x+=1
+			is_finish = false
+		elseif slime.y>slime.next_y then 
+			slime.y-=1 
+			is_finish = false
+		elseif slime.y<slime.next_y then 
+			slime.y+=1 
+			is_finish = false
+		end
+		
+		anim_walk(slime)		
+	end
+
+	if is_finish then
+	 return false
+	end
+	
+	return true
+	
 end
 
-function anim(player)
-	player.spt+=0.5
-	if player.spt > 4 then
-	 player.spt=1
+function anim_idle()
+	for slime in all(slimes) do
+				slime.spt=1
+	end
+end
+
+function anim_walk(slime)
+	slime.spt+=0.5
+	if slime.spt > 4 then
+	 slime.spt=1
+	end
+end
+-->8
+--portal
+portals={}
+
+function new_portal(x,y)
+	local portal={}
+	portal.x = x
+	portal.y = y
+	portal.spt=17
+	return portal
+end
+
+function get_portals()
+	for i=camera_pos.x,camera_pos.x+128,8 do
+		for j=camera_pos.y,camera_pos.y+128,8 do
+		 if is_tile(i,j,flags.portal) then
+		 	add(portals,new_portal(i,j))
+		 end
+		end
+	end
+end
+
+function anim_portals()
+	for p in all(portals) do
+	 p.spt+=0.2
+	 if p.spt > 19 then
+	  p.spt=17
+	 end
+	 mset(p.x/8,p.y/8,flr(p.spt))
 	end
 end
 __gfx__
