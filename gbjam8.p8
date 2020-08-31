@@ -46,10 +46,12 @@ end
 function show_menu()
 	game.update = update_menu
 	game.draw = draw_menu
+	music(0)
 end
 
 function update_menu()
 	if btn(❎) then
+	 music(-1, 300)
   start_game()
 	end
 end
