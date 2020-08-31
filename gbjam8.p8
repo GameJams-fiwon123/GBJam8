@@ -56,10 +56,9 @@ end
 
 function draw_menu()
 	cls()
-	pal(1, true)
+	rectfill(0,0,128,128,1)
 	spr(64,32,20,8,2)
 	spr(96,24,40,10,2)
-	pal()
 	print_centered("press x to start", 0, 10)
 end
 -->8
@@ -167,6 +166,7 @@ function update_level()
  		 
  		 for slime in all(slimes) do
  		  if is_tile(slime.x,slime.y,flags.spike) then
+ 		   sfx(sfxs.spike)
  		   if (slime.life >= 1) then
 	 		   if input.x != 0 then
 	 		   	add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2))
@@ -180,6 +180,10 @@ function update_level()
 	 		  	del(slimes,slime)
 	 		  end
  		  end
+ 		 end
+ 		 
+ 		 for slime in all(slimes) do
+ 		 	process_fusion(slime)
  		 end
  		end
  end
@@ -210,6 +214,22 @@ function draw_level()
 	for slime in all(slimes) do
 		spr(slime.spt,slime.x,slime.y)
 	end
+	
+	for slime in all(slimes) do
+		palt(1,true)
+		
+		if slime.life%1 != 0 then
+		 for i=0,slime.life-1 do
+			 spr(34,slime.x-(slime.life)*8+i*8+8*(slime.life+1)/2.5-2.5,slime.y-8)
+	 	end
+			spr(spr(35,slime.x-(slime.life-1)*8+(slime.life-1)*8+8*slime.life/2.5-2.5,slime.y-8))
+	 else
+	 	for i=0,slime.life-1,1 do
+			 spr(34,slime.x-(slime.life-1)*8+i*8+8*slime.life/2.5-2.5,slime.y-8)
+	 	end
+	 end
+	 palt(1,false)
+	end
 end
 
 function update_anim_level()
@@ -223,6 +243,7 @@ end
 
 function draw_anim_level()
  cls()
+ rectfill(camera_pos.x,camera_pos.y,camera_pos.x+128,camera_pos.y+128,1)
 	print_centered("level "..game.level, camera_pos.x, camera_pos.y)
 end
 -->8
@@ -233,7 +254,7 @@ end
 function print_centered(str, offset_x, offset_y)
   print(str, 
   64 - (#str * 2) + offset_x, 
-  60 + offset_y) 
+  60 + offset_y,7) 
 end
 -->8
 -- slime
@@ -265,6 +286,18 @@ function set_input_walk(slime)
 	slime.next_y = slime.y
 	
 	return false
+end
+
+function process_fusion(slime)
+ for slm in all(slimes) do
+  if slm != slime then
+   if slm.x == slime.x and
+      slm.y == slime.y then
+      slm.life+=slime.life
+      del(slimes,slime)
+   end
+  end
+ end
 end
 
 function process_walk()
