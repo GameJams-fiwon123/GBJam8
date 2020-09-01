@@ -20,7 +20,7 @@ flags = {
 	spike=1,
 	button=2,
 	door=3,
-	key=5,
+	key=4,
 	portal=7
 }
 
@@ -94,22 +94,22 @@ function start_game()
 end
 
 function show_level1()
-	add(slimes,new_slime(5*8,6*8,1))
+	add(slimes,new_slime(5*8,6*8,1, false))
 	get_portals()
 end
 
 function show_level2()
-	add(slimes,new_slime(camera_pos.x+5*8,camera_pos.y+6*8,1))
+	add(slimes,new_slime(camera_pos.x+5*8,camera_pos.y+6*8,1, false))
  get_portals()
 end
 
 function show_level3()
-	add(slimes,new_slime(camera_pos.x+5*8,camera_pos.y+6*8,1))
+	add(slimes,new_slime(camera_pos.x+5*8,camera_pos.y+6*8,1, false))
  get_portals()
 end
 
 function show_level4()
-	add(slimes,new_slime(camera_pos.x+5*8,camera_pos.y+6*8,1))
+	add(slimes,new_slime(camera_pos.x+5*8,camera_pos.y+6*8,1, false))
  get_portals()
  get_doors()
 end
@@ -117,6 +117,14 @@ end
 function show_level5()
 	add(slimes,new_slime(camera_pos.x+5*8,camera_pos.y+6*8,1))
  get_portals()
+ get_keys()
+ get_doors()
+end
+
+function show_level6()
+	add(slimes,new_slime(camera_pos.x+5*8,camera_pos.y+6*8,1))
+ get_portals()
+ get_keys()
  get_doors()
 end
 
@@ -149,7 +157,8 @@ function verify_input()
 				
 				if flag_walk then
 			  for slime in all(slimes) do
-				  if is_tile(slime.x,slime.y,flags.button) then
+				  if is_tile(slime.x,slime.y,flags.button) and
+				     (slime.next_x != slime.x or slime.next_y != slime.y) then
 				 		for door in all(doors) do
 				 		 door.spt=49
 				 		 mset(door.x/8,door.y/8,49)
@@ -186,6 +195,7 @@ function reset_level()
  portals={}
  reset_doors()
 	slimes={}
+	reset_keys()
 	
  game.update = update_anim_level
 	game.draw = draw_anim_level
@@ -235,10 +245,22 @@ function update_level()
  		 for slime in all(slimes) do
  		  if is_tile(slime.x,slime.y,flags.button) or
  		     is_tile(slime.x,slime.y,flags.door) then
+ 		 		if doors[1].spt == 49 then
+	 		 		sfx(sfxs.button)
+	 		 		sfx(sfxs.open_door)
+	 		 	end
  		 		for door in all(doors) do
  		 		 door.spt=20
  		 		 mset(door.x/8,door.y/8,20)
  		 		end
+ 		  end
+ 		 end
+ 		 
+ 		 for slime in all(slimes) do
+ 		  if is_tile(slime.x,slime.y,flags.key) then
+ 		 		sfx(sfxs.catch)
+ 		 		mset(slime.x/8,slime.y/8,20)
+ 		 		slime.has_key = true
  		  end
  		 end
  		end
@@ -254,6 +276,7 @@ function next_level()
  portals={}
  reset_doors()
 	slimes={}
+	reset_keys()
  
  camera_pos.x+=128
  if (camera_pos.x/128 == 5) then
@@ -320,11 +343,12 @@ end
 -- slime
 slimes={}
 
-function new_slime(x,y,life)
+function new_slime(x,y,life, has_key)
 	local slime={}
 	slime.x = x
 	slime.y = y
 	slime.life = life
+	slime.has_key=has_key
 	slime.next_x=0
 	slime.next_y=0
 	slime.spt=1
@@ -341,6 +365,19 @@ function set_input_walk(slime)
 		slime.next_y = next_y
 		
 		return true
+	elseif is_tile(next_x, next_y, flags.door) and
+	       slime.has_key then
+		del(slimes, slime)
+		mset(next_x/8, next_y/8, 20)
+		for door in all(doors) do
+		 if door.x == next_x and
+		    door.y == next_y then
+		    add(doors_del, door)
+		    del(doors, door)
+		 end
+		end
+
+		return false
 	end
 	
 	slime.next_x = slime.x
@@ -363,58 +400,64 @@ end
 
 function divide(slime)
 	sfx(sfxs.spike)
+	
+	local has_key = false
+	if slime.has_key then
+	 has_key = true
+	end
+	
  if (slime.life >= 1) then
   if input.x != 0 then
    if (is_tile(slime.x,slime.y+1*8,flags.collision) and
       is_tile(slime.x,slime.y-1*8,flags.collision)) then
       if input.x > 0 then
-      	add(slimes,new_slime(slime.x+1*8, slime.y, slime.life/2))
+      	add(slimes,new_slime(slime.x+1*8, slime.y, slime.life/2, has_key))
       else
-       add(slimes,new_slime(slime.x-1*8, slime.y, slime.life/2))
+       add(slimes,new_slime(slime.x-1*8, slime.y, slime.life/2, has_key))
       end
    elseif is_tile(slime.x,slime.y+1*8,flags.collision) then
     if input.x > 0 then
-    	add(slimes,new_slime(slime.x+1*8, slime.y, slime.life/2))
+    	add(slimes,new_slime(slime.x+1*8, slime.y, slime.life/2, has_key))
     else
-     add(slimes,new_slime(slime.x-1*8, slime.y, slime.life/2))
+     add(slimes,new_slime(slime.x-1*8, slime.y, slime.life/2, has_key))
     end
-	  	add(slimes,new_slime(slime.x, slime.y-1*8, slime.life/2))
+	  	add(slimes,new_slime(slime.x, slime.y-1*8, slime.life/2, has_key))
    elseif is_tile(slime.x,slime.y-1*8,flags.collision) then 
 	  	if input.x > 0 then
-    	add(slimes,new_slime(slime.x+1*8, slime.y, slime.life/2))
+    	add(slimes,new_slime(slime.x+1*8, slime.y, slime.life/2, has_key))
     else
-     add(slimes,new_slime(slime.x-1*8, slime.y, slime.life/2))
+     add(slimes,new_slime(slime.x-1*8, slime.y, slime.life/2, has_key))
     end
-    add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2))
+    add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2, has_key))
    else
-	   add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2))
-	  	add(slimes,new_slime(slime.x, slime.y-1*8, slime.life/2))
+	   add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2, has_key))
+	  	add(slimes,new_slime(slime.x, slime.y-1*8, slime.life/2, has_key))
    end
   elseif input.y != 0 then
 			if (is_tile(slime.x+1*8,slime.y,flags.collision) and
       is_tile(slime.x-1*8,slime.y,flags.collision)) then
 	   if input.y > 0 then
-	    add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2))
+	    add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2, has_key))
 	   else
-	    add(slimes,new_slime(slime.x, slime.y-1*8, slime.life/2))
+	    add(slimes,new_slime(slime.x, slime.y-1*8, slime.life/2, has_key))
 	   end
    elseif is_tile(slime.x+1*8,slime.y,flags.collision) then
    	if input.y > 0 then
-	    add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2))
+	    add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2, has_key))
    	else
-	    add(slimes,new_slime(slime.x, slime.y-1*8, slime.life/2))
+	    add(slimes,new_slime(slime.x, slime.y-1*8, slime.life/2, has_key))
    	end
-   		add(slimes,new_slime(slime.x-1*8, slime.y, slime.life/2))
+   		add(slimes,new_slime(slime.x-1*8, slime.y, slime.life/2, has_key))
    elseif is_tile(slime.x-1*8,slime.y,flags.collision) then
    	if input.y > 0 then
-	    add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2))
+	    add(slimes,new_slime(slime.x, slime.y+1*8, slime.life/2, has_key))
    	else
-	    add(slimes,new_slime(slime.x, slime.y-1*8, slime.life/2))
+	    add(slimes,new_slime(slime.x, slime.y-1*8, slime.life/2, has_key))
    	end
-   		add(slimes,new_slime(slime.x+1*8, slime.y, slime.life/2))
+   		add(slimes,new_slime(slime.x+1*8, slime.y, slime.life/2, has_key))
    else
-    add(slimes,new_slime(slime.x+1*8, slime.y, slime.life/2))
-  		add(slimes,new_slime(slime.x-1*8, slime.y, slime.life/2))
+    add(slimes,new_slime(slime.x+1*8, slime.y, slime.life/2, has_key))
+  		add(slimes,new_slime(slime.x-1*8, slime.y, slime.life/2, has_key))
    end
   end
   del(slimes,slime)
@@ -455,14 +498,24 @@ end
 
 function anim_idle()
 	for slime in all(slimes) do
-				slime.spt=1
+	 if not slime.has_key then
+	 	slime.spt=1
+	 else
+	  slime.spt=5
+	 end
 	end
 end
 
 function anim_walk(slime)
 	slime.spt+=0.5
-	if slime.spt > 4 then
-	 slime.spt=1
+	if not slime.has_key then
+		if slime.spt > 4 then
+	 	slime.spt=1
+	 end
+	else
+	 if slime.spt > 9 then
+	  slime.spt=5
+	 end
 	end
 end
 -->8
@@ -498,7 +551,8 @@ function anim_portals()
 end
 -->8
 --door
-door={}
+doors={}
+doors_del={}
 
 function new_door(x,y)
 	local door={}
@@ -512,7 +566,11 @@ function reset_doors()
  for door in all(doors) do
   mset(door.x/8,door.y/8,49)
  end
+ for door in all(doors_del) do
+  mset(door.x/8,door.y/8,49)
+ end
  doors={}
+ doors_del={}
 end
 
 function get_doors()
@@ -525,6 +583,34 @@ function get_doors()
 	end
 end
 
+-->8
+--key
+keys={}
+
+function new_key(x,y)
+	local key={}
+	key.x = x
+	key.y = y
+	key.spt=50
+	return key
+end
+
+function reset_keys()
+ for key in all(keys) do
+  mset(key.x/8,key.y/8,50)
+ end
+ keys={}
+end
+
+function get_keys()
+	for i=camera_pos.x,camera_pos.x+128,8 do
+		for j=camera_pos.y,camera_pos.y+128,8 do
+		 if is_tile(i,j,flags.key) then
+		 	add(keys,new_key(i,j))
+		 end
+		end
+	end
+end
 __gfx__
 00000000000000000000000000000000000990000000000000000000000000000009900000000000000000000000000000000000000000000000000000000000
 00000000000990000000000000099000009999000009900000000000000990000099990000099000000000000000000090000009000000000000000000000000
