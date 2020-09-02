@@ -73,6 +73,7 @@ end
 is_walking = false
 
 function start_game()
+ music(7)
 	game.time = 0
 	game.level = 1
 	
@@ -277,19 +278,34 @@ function update_level()
  		 	process_fusion(slime)
  		 end
  		 
+ 		 
+ 		 for door in all(doors) do
+ 		 	local lock_door = true
+		 		for slime in all(slimes) do
+		  		if slime.x == door.x and
+		 						slime.y == door.y then
+		 					door.spt=20
+		 					lock_door = false
+	 		 		 mset(door.x/8,door.y/8,20)
+	 		 	end
+			 	end
+		 		if lock_door then
+ 		 	 mset(door.x/8,door.y/8,49)
+ 		 	end
+ 		 end
+ 		 
  		 for slime in all(slimes) do
- 		  if is_tile(slime.x,slime.y,flags.button) or
- 		     is_tile(slime.x,slime.y,flags.door) then
+ 		  if is_tile(slime.x,slime.y,flags.button) then
  		 		if #doors > 0 and doors[1].spt == 49 then
 	 		 		sfx(sfxs.button)
 	 		 		sfx(sfxs.open_door)
 	 		 	end
  		 		for door in all(doors) do
- 		 		 door.spt=20
- 		 		 mset(door.x/8,door.y/8,20)
+		 		 		 door.spt=20
+		 		 		 mset(door.x/8,door.y/8,20)
  		 		end
  		  end
- 		 end
+ 		 end 		 
  		 
  		 for slime in all(slimes) do
  		  if is_tile(slime.x,slime.y,flags.key) then
@@ -437,6 +453,9 @@ function process_fusion(slime)
    if slm.x == slime.x and
       slm.y == slime.y then
       slm.life+=slime.life
+      if not slm.has_key then
+      	slm.has_key = slime.has_key
+      end
       del(slimes,slime)
    end
   end
