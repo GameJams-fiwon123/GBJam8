@@ -36,7 +36,8 @@ sfxs = {
  walk  = 1,
  catch = 2,
  open_door = 3,
- button = 4
+ button = 4,
+ join = 18
 }
 
 function _init()
@@ -481,6 +482,7 @@ function process_fusion(slime)
   if slm != slime then
    if slm.x == slime.x and
       slm.y == slime.y then
+      sfx(sfxs.join)
       slm.life+=slime.life
       if not slm.has_key then
       	slm.has_key = slime.has_key
