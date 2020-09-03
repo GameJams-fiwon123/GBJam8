@@ -1,7 +1,7 @@
 pico-8 cartridge // http://www.pico-8.com
 version 27
 __lua__
--- start
+--start
 game = {}
 
 input={
@@ -14,7 +14,6 @@ camera_pos={
 	y=0
 }
 
-
 flags = {
 	collision=0,
 	spike=1,
@@ -23,6 +22,13 @@ flags = {
 	key=4,
 	heart=5,
 	portal=7
+}
+
+musics={
+	title=0,
+	pass_level=6,
+	gameplay=7,
+	stop_sound=-1
 }
 
 sfxs = {
@@ -45,35 +51,44 @@ function _draw()
 	game.draw()
 end
 -->8
--- main menu
-
+--main menu
 function show_menu()
 	game.update = update_menu
 	game.draw = draw_menu
-	music(0)
+	music(musics.title)
 end
 
 function update_menu()
 	if btn(❎) then
-	 music(-1, 300)
+	 music(musics.stop_sound, 300)
   start_game()
 	end
 end
 
 function draw_menu()
 	cls()
+	
+	--gray background color
 	rectfill(0,0,128,128,1)
-	spr(64,32,20,8,2)
-	spr(96,24,40,10,2)
+	
+	draw_title()
+	
 	print_centered("press x to start", 0, 10)
 end
+
+function draw_title()
+	-- title: help
+	spr(64,32,20,8,2)
+	-- title: slime
+	spr(96,24,40,10,2)
+end
 -->8
--- levels
+--levels
 
 is_walking = false
 
 function start_game()
- music(7)
+ music(musics.gameplay)
 	game.time = 0
 	game.level = 1
 	
@@ -133,8 +148,6 @@ end
 function show_level7()
 	add(slimes,new_slime(camera_pos.x+4*8,camera_pos.y+3*8,1))
  get_portals()
- get_keys()
- get_doors()
  get_hearts()
 end
 
@@ -152,16 +165,13 @@ function show_level9()
  get_portals()
  get_keys()
  get_doors()
- get_hearts()
 end
 
 function show_level10()
 	add(slimes,new_slime(camera_pos.x+4*8,camera_pos.y+3*8,1))
  add(slimes,new_slime(camera_pos.x+11*8,camera_pos.y+3*8,1))
  get_portals()
- get_keys()
  get_doors()
- get_hearts()
 end
 
 function is_tile(x,y,type_tile)
@@ -191,15 +201,30 @@ function verify_input()
 				end
 				
 				if flag_walk then
+				 local out_button=false
 			  for slime in all(slimes) do
 				  if is_tile(slime.x,slime.y,flags.button) and
 				     (slime.next_x != slime.x or slime.next_y != slime.y) then
-				 		for door in all(doors) do
-				 		 door.spt=49
-				 		 mset(door.x/8,door.y/8,49)
-				 		end
+				 		out_button=true
 				  end
 				 end
+				 
+				 if out_button then
+					 for door in all(doors) do
+					  local has_slime=false
+					  for slime in all(slimes) do
+				 		 if slime.next_x == door.x and
+				 		     slime.next_y == door.y then
+				 		   has_slime = true
+				 		 end
+			 		 end
+			 		 
+			 		 if not has_slime then
+			 		  door.spt=49
+				 		 mset(door.x/8,door.y/8,49)
+			 		 end
+			 		end
+			 	end
 				
 					sfx(sfxs.walk)
 					is_walking=true
@@ -268,17 +293,17 @@ function update_level()
  		  end
  		 end
  		 
- 		 for slime in all(slimes) do
- 		  if is_tile(slime.x,slime.y,flags.spike) then
- 		 		del(slimes,slime)
- 		  end
- 		 end
+ 		 --for slime in all(slimes) do
+ 		  --if is_tile(slime.x,slime.y,flags.spike) then
+ 		 	--	del(slimes,slime)
+ 		 -- end
+ 		 --end
  		 
  		 for slime in all(slimes) do
  		 	process_fusion(slime)
  		 end
  		 
- 		 
+ 		 -- any slime on the spike
  		 for door in all(doors) do
  		 	local lock_door = true
 		 		for slime in all(slimes) do
@@ -294,10 +319,11 @@ function update_level()
  		 	end
  		 end
  		 
+ 		 -- any slime on the button
  		 for slime in all(slimes) do
  		  if is_tile(slime.x,slime.y,flags.button) then
+ 		  	sfx(sfxs.button)
  		 		if #doors > 0 and doors[1].spt == 49 then
-	 		 		sfx(sfxs.button)
 	 		 		sfx(sfxs.open_door)
 	 		 	end
  		 		for door in all(doors) do
@@ -307,6 +333,7 @@ function update_level()
  		  end
  		 end 		 
  		 
+ 		 -- any slime catch key
  		 for slime in all(slimes) do
  		  if is_tile(slime.x,slime.y,flags.key) then
  		 		sfx(sfxs.catch)
@@ -315,6 +342,7 @@ function update_level()
  		  end
  		 end
  		 
+ 		 -- any slime catch heart
  		 for slime in all(slimes) do
  		  if is_tile(slime.x,slime.y,flags.heart) then
  		 		sfx(sfxs.catch)
@@ -329,7 +357,7 @@ function update_level()
 end
 
 function next_level()
- music(6)
+ music(musics.pass_level)
  game.time=0
  game.level+=1
  
@@ -428,6 +456,7 @@ function set_input_walk(slime)
 		return true
 	elseif is_tile(next_x, next_y, flags.door) and
 	       slime.has_key then
+	 sfx(sfxs.open_door)
 		del(slimes, slime)
 		mset(next_x/8, next_y/8, 20)
 		for door in all(doors) do
