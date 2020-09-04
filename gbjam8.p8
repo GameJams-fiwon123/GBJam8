@@ -471,9 +471,9 @@ function draw_level()
  else
   if slimes[1].y < camera_pos.y+68 then
   	print("this game was made by",camera_pos.x+20,camera_pos.y+15,7)
-  	print("euler moises",camera_pos.x+170,camera_pos.y+15,7)
+  	print("felipe inoue",camera_pos.x+170,camera_pos.y+15,7)
   	print("and",camera_pos.x+255,camera_pos.y+15,7)
-  	print("felipe inoue",camera_pos.x+295,camera_pos.y+15,7)
+  	print("euler moises",camera_pos.x+295,camera_pos.y+15,7)
   else
    print("...become an adventurer",camera_pos.x+15,camera_pos.y+75,7)
   	print("...i'll finally...",camera_pos.x+160,camera_pos.y+75,7)
