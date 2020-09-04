@@ -475,7 +475,7 @@ function draw_level()
   	print("and",camera_pos.x+255,camera_pos.y+15,7)
   	print("felipe inoue",camera_pos.x+295,camera_pos.y+15,7)
   else
-   print("...become a adventurous",camera_pos.x+15,camera_pos.y+75,7)
+   print("...become an adventurer",camera_pos.x+15,camera_pos.y+75,7)
   	print("...i'll finally...",camera_pos.x+160,camera_pos.y+75,7)
   	print("my dream is near...",camera_pos.x+285,camera_pos.y+75,7)
   end
