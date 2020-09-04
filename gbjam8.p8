@@ -520,7 +520,10 @@ function draw_final()
 	
 	--gray background color
 	rectfill(0,0,128,128,1)
-	print_centered("thank you for playing!", 0, -45)
+	print_centered("thank you for playing!", 0, -35)
+	
+	spr(75,45,30,5,4)
+	
 	print_centered("press x to menu", 0, 10)
 end
 -->8
@@ -560,6 +563,7 @@ function set_input_walk(slime)
 	elseif is_tile(next_x, next_y, flags.door) and
 	       slime.has_key then
 	 sfx(sfxs.open_door)
+	 add(slimes_die,slime)
 		del(slimes, slime)
 		mset(next_x/8, next_y/8, 20)
 		for door in all(doors) do
