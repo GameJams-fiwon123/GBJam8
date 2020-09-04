@@ -273,6 +273,7 @@ function reset_level()
  portals={}
  reset_doors()
 	slimes={}
+ slimes_die={}
 	reset_keys()
  reset_hearts()
 	
@@ -297,10 +298,12 @@ function update_level()
  
 	 input_walk()
 	 anim_idle()
+	 anim_die()
 		
 		verify_input()
 		
  else
+   anim_die()
  		is_walking=process_walk()
  		
  		if not is_walking then
@@ -312,24 +315,33 @@ function update_level()
  		 if complete_level() then
  		 	next_level()
  		 end
- 		 
+
+ 		 -- any slime on the spike
+ 		 local slimes_div={}
  		 for slime in all(slimes) do
+ 		  add(slimes_div,slime)
+ 		 end
+ 		 
+ 		 for slime in all(slimes_div) do
  		  if is_tile(slime.x,slime.y,flags.spike) then
  		 		divide(slime)
  		  end
  		 end
  		 
- 		 --for slime in all(slimes) do
- 		  --if is_tile(slime.x,slime.y,flags.spike) then
- 		 	--	del(slimes,slime)
- 		 -- end
- 		 --end
+ 		 -- after division, any slime on the spike
+ 		 for slime in all(slimes) do
+ 		  if is_tile(slime.x,slime.y,flags.spike) then
+ 		 		slime.spt=9
+ 		 		add(slimes_die,slime)
+ 		 		del(slimes,slime)
+ 		  end
+ 		 end
  		 
  		 for slime in all(slimes) do
  		 	process_fusion(slime)
  		 end
  		 
- 		 -- any slime on the spike
+ 		 -- any slime on the door
  		 for door in all(doors) do
  		 	local lock_door = true
 		 		for slime in all(slimes) do
@@ -393,6 +405,7 @@ function next_level()
  portals={}
  reset_doors()
 	slimes={}
+	slimes_die={}
 	reset_keys()
 	reset_hearts()
  
@@ -418,17 +431,36 @@ function draw_level()
 		spr(slime.spt,slime.x,slime.y)
 	end
 	
+	for slime in all(slimes_die) do
+		spr(slime.spt,slime.x,slime.y)
+		if slime.spt > 12 then
+		 del(slimes_die, slime)
+		end
+	end
+	
 	for slime in all(slimes) do
 		palt(1,true)
 		
 		if slime.life%1 != 0 then
-		 for i=0,slime.life-1 do
-			 spr(34,slime.x-(slime.life)*8+i*8+8*(slime.life+1)/2.5-2.5,slime.y-8)
+		 for i=0,slime.life-1,1 do
+			 spr(34,slime.x-
+			 							(flr(slime.life))*8+
+			 							i*8+8*(flr(slime.life+1))/2.5-
+			 							2.5,
+			 							slime.y-8)
 	 	end
-			spr(spr(35,slime.x-(slime.life-1)*8+(slime.life-1)*8+8*slime.life/2.5-2.5,slime.y-8))
+			spr(spr(35,slime.x-
+													(flr(slime.life+1))*8+
+													(flr(slime.life+1))*8+8*slime.life/2.5-
+													2.5,
+													slime.y-8))
 	 else
 	 	for i=0,slime.life-1,1 do
-			 spr(34,slime.x-(slime.life-1)*8+i*8+8*slime.life/2.5-2.5,slime.y-8)
+			 spr(34,slime.x-
+			 						(slime.life-1)*8+
+			 						i*8+8*slime.life/2.5-
+			 						2.5,
+			 						slime.y-8)
 	 	end
 	 end
 	 palt(1,false)
@@ -501,6 +533,7 @@ end
 -->8
 -- slime
 slimes={}
+slimes_die={}
 
 function new_slime(x,y,life, has_key)
 	local slime={}
@@ -668,6 +701,8 @@ function divide(slime)
   end
   del(slimes,slime)
  else
+  slime.spt=9
+ 	add(slimes_die,slime)
  	del(slimes,slime)
  end
 end
@@ -722,6 +757,12 @@ function anim_walk(slime)
 	 if slime.spt > 9 then
 	  slime.spt=5
 	 end
+	end
+end
+
+function anim_die()
+	for slime in all(slimes_die) do
+	 slime.spt+=0.5
 	end
 end
 -->8
