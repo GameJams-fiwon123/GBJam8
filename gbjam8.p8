@@ -520,7 +520,7 @@ function draw_final()
 	
 	--gray background color
 	rectfill(0,0,128,128,1)
-	
+	print_centered("thank you for playing!", 0, -45)
 	print_centered("press x to menu", 0, 10)
 end
 -->8
