@@ -442,18 +442,21 @@ function draw_level()
 		palt(1,true)
 		
 		if slime.life%1 != 0 then
-		 for i=0,slime.life-1,1 do
+		 local aux_life = slime.life+0.5
+		 
+		 for i=0,aux_life-2,1 do
 			 spr(34,slime.x-
-			 							(flr(slime.life))*8+
-			 							i*8+8*(flr(slime.life+1))/2.5-
-			 							2.5,
-			 							slime.y-8)
+			 						(aux_life-1)*8+
+			 						i*8+8*aux_life/2.5-
+			 						2.5,
+			 						slime.y-8)
 	 	end
-			spr(spr(35,slime.x-
-													(flr(slime.life+1))*8+
-													(flr(slime.life+1))*8+8*slime.life/2.5-
-													2.5,
-													slime.y-8))
+			 						
+			spr(35,slime.x-
+			 						(aux_life-1)*8+
+			 						(aux_life-1)*8+8*aux_life/2.5-
+			 						2.5,
+			 						slime.y-8)
 	 else
 	 	for i=0,slime.life-1,1 do
 			 spr(34,slime.x-
