@@ -92,10 +92,10 @@ is_walking = false
 function start_game()
  music(musics.gameplay)
 	game.time = 0
-	game.level = 12
+	game.level = 1
 	
-	camera_pos.x=128*3
-	camera_pos.y=128
+	camera_pos.x=0
+	camera_pos.y=0
 	camera(camera_pos.x, camera_pos.y)
 	game.scenes={
 		{show=show_level1},
