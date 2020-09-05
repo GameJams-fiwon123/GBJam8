@@ -111,6 +111,7 @@ function start_game()
 		{show=show_level11},
 		{show=show_level12},
 		{show=show_level13},
+		{show=show_level14},
 		{show=show_level_credits},
 	}
  game.update = update_anim_level
@@ -188,8 +189,7 @@ function show_level11()
 end
 
 function show_level12()
-	add(slimes,new_slime(camera_pos.x+3*8,camera_pos.y+7*8,1))
-	add(slimes,new_slime(camera_pos.x+3*8,camera_pos.y+9*8,1))
+	add(slimes,new_slime(camera_pos.x+1*8,camera_pos.y+8*8,1))
  get_portals()
  get_doors()
 end
@@ -202,6 +202,15 @@ function show_level13()
  get_hearts()
  get_doors()
 end
+
+function show_level14()
+	add(slimes,new_slime(camera_pos.x+2*8,camera_pos.y+10*8,1))
+ get_portals()
+ get_keys()
+ get_hearts()
+ get_doors()
+end
+
 
 
 function show_level_credits()
