@@ -92,10 +92,10 @@ is_walking = false
 function start_game()
  music(musics.gameplay)
 	game.time = 0
-	game.level = 12
+	game.level = 1
 	
-	camera_pos.x=4*128
-	camera_pos.y=1*128
+	camera_pos.x=0
+	camera_pos.y=0
 	camera(camera_pos.x, camera_pos.y)
 	game.scenes={
 		{show=show_level1},
@@ -196,7 +196,7 @@ end
 
 
 function show_level13()
-	add(slimes,new_slime(camera_pos.x+4*8,camera_pos.y+8*8,1))
+	add(slimes,new_slime(camera_pos.x+4*8,camera_pos.y+7*8,1))
  get_portals()
  get_keys()
  get_hearts()
