@@ -94,8 +94,8 @@ function start_game()
 	game.time = 0
 	game.level = 1
 	
-	camera_pos.x=0
-	camera_pos.y=0
+	camera_pos.x=0*128
+	camera_pos.y=0*128
 	camera(camera_pos.x, camera_pos.y)
 	game.scenes={
 		{show=show_level1},
